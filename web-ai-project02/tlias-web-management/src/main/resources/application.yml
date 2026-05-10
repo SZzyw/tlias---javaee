@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: springboot-mybatis-quickstart #应用名称
+  # 配置数据库的连接信息
+  datasource:
+    url: jdbc:mysql://localhost:3306/tlias # 数据库连接地址
+    driver-class-name: com.mysql.cj.jdbc.Driver # 数据库驱动
+    username: root #数据库用户名
+    password: zyw780922 #数据库密码
+  servlet:
+    multipart:
+      # 最大单个文件大小
+      max-file-size: 10MB
+      # 最大请求大小（包括所有文件和表单数据）
+      max-request-size: 100MB
+
+# MyBatis 的相关配置
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true # 开启驼峰命名映射开关
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 输出SQL语句，日志
+
+#配置事务管理日志级别
+logging:
+  level:
+    org.springframework.jdbc.support.JdbcTransactionManager: debug
+
+#阿里云oss
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    bucketName: tlias-zyw
+    region: cn-beijing

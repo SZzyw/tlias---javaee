@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.way_ne.mapper.StudentMapper">
+
+    <select id="findAll" resultType="com.way_ne.pojo.Student">
+        SELECT s.*, c.name AS clazzName
+        FROM student s
+        LEFT JOIN clazz c ON c.id = s.clazz_id
+        <where>
+            <if test="name != null and name != ''">
+                AND s.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="degree != null">
+                AND s.degree &lt;= #{degree}
+            </if>
+            <if test="clazzId != null">
+                AND s.clazz_id = #{clazzId}
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM student WHERE id IN
+        <foreach item="id" collection="ids" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="addStudent">
+        insert into student(name,no,gender,phone,id_card,is_college,address,degree,graduation_date,clazz_id,violation_count,violation_score,create_time,update_time)
+        values(#{name},#{no},#{gender},#{phone},#{idCard},#{isCollege},#{address},#{degree},#{graduationDate},#{clazzId},#{violationCount},#{violationScore},#{createTime},#{updateTime})
+    </insert>
+
+    <select id="getById" resultType="com.way_ne.pojo.Student">
+        select * from student where id=#{id}
+    </select>
+
+    <update id="updateStudent">
+        update student set name=#{name},no=#{no},gender=#{gender},phone=#{phone},id_card=#{idCard},is_college=#{isCollege},address=#{address},degree=#{degree},graduation_date=#{graduationDate},clazz_id=#{clazzId},violation_count=#{violationCount},violation_score=#{violationScore},create_time=#{createTime},update_time=#{updateTime} where id=#{id}
+    </update>
+
+    <select id="countStudentDegreeData" resultType="java.util.Map">
+        select case
+        when degree = 1 then '本科'
+        when degree = 2 then '大专'
+        when degree = 3 then '高中'
+        when degree = 4 then '初中'
+        when degree = 5 then '小学'
+        else '其他'
+        end name
+        ,count(*) value from student group by degree
+    </select>
+
+    <select id="countStudentCountData" resultType="java.util.Map">
+        select clazz.name name,count(*) value from student left join clazz on clazz.id=student.clazz_id group by clazz.name
+    </select>
+</mapper>
