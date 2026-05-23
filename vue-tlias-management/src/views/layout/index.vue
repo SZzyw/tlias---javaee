@@ -77,6 +77,8 @@ const logout = () => {
         </el-main>
       </el-container>
 
+      <open-chat-widget url="/api/chat"></open-chat-widget>
+
     </el-container>
   </div>
 </template>
