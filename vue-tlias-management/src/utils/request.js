@@ -1,17 +1,28 @@
 import axios from 'axios'
 
-//创建axios实例对象
 const request = axios.create({
   baseURL: '/api',
   timeout: 600000
 })
 
-//axios的响应 response 拦截器
+request.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.token = token
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
 request.interceptors.response.use(
-  (response) => { //成功回调
+  (response) => {
     return response.data
   },
-  (error) => { //失败回调
+  (error) => {
     return Promise.reject(error)
   }
 )

@@ -15,10 +15,10 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-     path: '/', 
+     path: '/',
      name: '',
      component: LayoutView,
-     redirect: '/index', //重定向
+     redirect: '/index',
      children: [
       {path: 'index', name: 'index', component: IndexView},
       {path: 'clazz', name: 'clazz', component: ClazzView},
@@ -32,6 +32,12 @@ const router = createRouter({
     },
     {path: '/login', name: 'login', component: LoginView}
   ]
+})
+
+router.beforeEach((to) => {
+  if (to.path !== '/login' && !localStorage.getItem('token')) {
+    return '/login'
+  }
 })
 
 export default router

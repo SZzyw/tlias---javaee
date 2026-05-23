@@ -1,26 +1,46 @@
 <script setup>
-  import { ref } from 'vue'
-  
-  let loginForm = ref({username:'', password:''})
-  
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import request from '@/utils/request'
+import { ElMessage } from 'element-plus'
+
+const router = useRouter()
+let loginForm = ref({username: '', password: ''})
+
+const login = async () => {
+  if (!loginForm.value.username || !loginForm.value.password) {
+    ElMessage.warning('请输入用户名和密码')
+    return
+  }
+  const result = await request.post('/login', loginForm.value)
+  if (result.code) {
+    localStorage.setItem('token', result.data.token)
+    ElMessage.success('登录成功')
+    router.push('/')
+  } else {
+    ElMessage.error(result.msg || '用户名或密码错误')
+  }
+}
+
+const reset = () => {
+  loginForm.value = {username: '', password: ''}
+}
 </script>
 
 <template>
   <div id="container">
     <div class="login-form">
       <el-form label-width="80px">
-        <p class="title">Tlias智能学习辅助系统</p>
+        <p class="title">教育管理系统</p>
         <el-form-item label="用户名" prop="username">
           <el-input v-model="loginForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
-
         <el-form-item label="密码" prop="password">
           <el-input type="password" v-model="loginForm.password" placeholder="请输入密码"></el-input>
         </el-form-item>
-
         <el-form-item>
-          <el-button class="button" type="primary" @click="">登 录</el-button>
-          <el-button class="button" type="info" @click="">重 置</el-button>
+          <el-button class="button" type="primary" @click="login">登 录</el-button>
+          <el-button class="button" type="info" @click="reset">重 置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -35,7 +55,6 @@
   background-repeat: no-repeat;
   background-size: cover;
 }
-
 .login-form {
   max-width: 400px;
   padding: 30px;
@@ -45,7 +64,6 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   background-color: white;
 }
-
 .title {
   font-size: 30px;
   font-family: '楷体';
@@ -53,7 +71,6 @@
   margin-bottom: 30px;
   font-weight: bold;
 }
-
 .button {
   margin-top: 30px;
   width: 120px;
