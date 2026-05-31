@@ -6,14 +6,14 @@ import com.way_ne.pojo.EmpQueryParam;
 import com.way_ne.pojo.PageResult;
 import com.way_ne.pojo.Result;
 import com.way_ne.service.EmpService;
+import com.way_ne.utils.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 员工管理
@@ -27,6 +27,10 @@ public class EmpController {
      */
     @Autowired
     EmpService empService;
+
+    @Autowired
+    private HttpServletRequest request;
+
     @GetMapping
     public Result page(EmpQueryParam empQueryParam){
         log.info("查询员工信息{}",empQueryParam);
@@ -71,5 +75,23 @@ public class EmpController {
         log.info("查询所有员工信息");
         List<Emp> list=empService.getlist();
         return Result.success(list);
+    }
+
+    @PutMapping("/password")
+    public Result changePassword(@RequestBody Map<String, String> params) {
+        String token = request.getHeader("token");
+        if (token == null || token.isEmpty()) {
+            return Result.error("未登录");
+        }
+        var claims = JwtUtils.parseToken(token);
+        Integer id = (Integer) claims.get("id");
+        String oldPassword = params.get("oldPassword");
+        String newPassword = params.get("newPassword");
+        try {
+            empService.changePassword(id, oldPassword, newPassword);
+            return Result.success();
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 }

@@ -56,6 +56,14 @@ public interface EmpMapper {
      */
     Emp selectByUsernameAndPassword(Emp emp);
 
+    Emp selectByUsername(String username);
+
+    void updatePassword(Integer id, String password);
+
+    List<Map<String, Object>> countEmpEntryTrend();
+
+    List<Map<String, Object>> selectAllPasswords();
+
     /**
      * 查询所有员工信息
      */

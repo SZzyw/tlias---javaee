@@ -56,4 +56,28 @@
     <select id="countStudentCountData" resultType="java.util.Map">
         select clazz.name name,count(*) value from student left join clazz on clazz.id=student.clazz_id group by clazz.name
     </select>
+
+    <select id="countStudentEntryTrend" resultType="java.util.Map">
+        select date_format(create_time, '%Y-%m') month, count(*) value
+        from student where create_time is not null
+        group by date_format(create_time, '%Y-%m')
+        order by month
+    </select>
+
+    <select id="countViolationRank" resultType="java.util.Map">
+        select s.name, s.violation_count count, s.violation_score score, c.name clazzName
+        from student s left join clazz c on c.id = s.clazz_id
+        where s.violation_count > 0
+        order by s.violation_score desc
+    </select>
+
+    <select id="countDashboard" resultType="java.util.Map">
+        select
+            (select count(*) from emp) empCount,
+            (select count(*) from student) stuCount,
+            (select count(*) from clazz) clazzCount,
+            (select count(*) from dept) deptCount,
+            (select coalesce(sum(violation_count), 0) from student) totalViolation,
+            (select coalesce(sum(violation_score), 0) from student) totalViolationScore
+    </select>
 </mapper>

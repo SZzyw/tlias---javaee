@@ -31,3 +31,8 @@ aliyun:
     endpoint: oss-cn-beijing.aliyuncs.com
     bucketName: tlias-zyw
     region: cn-beijing
+
+#JWT配置
+jwt:
+  secret-key: way_ne
+  expiration: 43200000

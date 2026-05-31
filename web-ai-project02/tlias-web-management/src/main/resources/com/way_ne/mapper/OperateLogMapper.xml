@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.way_ne.mapper.OperateLogMapper">
+    <insert id="insert">
+        insert into operate_log(operator, operation, method, params, cost_time, ip, create_time)
+        values(#{operator}, #{operation}, #{method}, #{params}, #{costTime}, #{ip}, #{createTime})
+    </insert>
+    <select id="list" resultType="com.way_ne.pojo.OperateLog">
+        select * from operate_log order by create_time desc
+    </select>
+</mapper>

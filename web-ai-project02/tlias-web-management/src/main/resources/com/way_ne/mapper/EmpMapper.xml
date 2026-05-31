@@ -37,6 +37,7 @@
     <resultMap id="empResultMap" type="com.way_ne.pojo.Emp">
         <id property="id" column="id"/>
         <result property="username" column="username"/>
+        <result property="password" column="password"/>
         <result property="name" column="name"/>
         <result property="gender" column="gender"/>
         <result property="phone" column="phone"/>
@@ -107,7 +108,26 @@
     </select>
 
     <select id="selectByUsernameAndPassword" resultType="com.way_ne.pojo.Emp">
-        select id,username,name from emp where username = #{username} and password = #{password}
+        select id,username,name,password from emp where username = #{username} and password = #{password}
+    </select>
+
+    <select id="selectByUsername" resultType="com.way_ne.pojo.Emp">
+        select id,username,name,password from emp where username = #{username}
+    </select>
+
+    <update id="updatePassword">
+        update emp set password = #{password} where id = #{id}
+    </update>
+
+    <select id="countEmpEntryTrend" resultType="java.util.Map">
+        select date_format(entry_date, '%Y-%m') month, count(*) value
+        from emp where entry_date is not null
+        group by date_format(entry_date, '%Y-%m')
+        order by month
+    </select>
+
+    <select id="selectAllPasswords" resultType="java.util.Map">
+        select id, password from emp
     </select>
 
     <select id="getlist" resultType="com.way_ne.pojo.Emp">

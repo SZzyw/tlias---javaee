@@ -31,4 +31,12 @@ public interface ReportService {
      * @return
      */
     ClazzOption getStudentCountData();
+
+    Map<String, Object> getDashboard();
+
+    List<Map<String, Object>> getEmpEntryTrend();
+
+    List<Map<String, Object>> getStudentEntryTrend();
+
+    List<Map<String, Object>> getViolationRank();
 }

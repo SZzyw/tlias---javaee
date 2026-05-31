@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class DeptServicImpl implements DeptService {
+public class DeptServiceImpl implements DeptService {
     @Autowired
     private DeptMapper deptMapper;
     @Override

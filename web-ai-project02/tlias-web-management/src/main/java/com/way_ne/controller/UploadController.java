@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-public class UploudController {
+public class UploadController {
     @Autowired
     private AliyunOSSOperator aliyunOSSOperator;
     @PostMapping("/upload")

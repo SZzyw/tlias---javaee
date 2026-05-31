@@ -9,6 +9,6 @@ export const queryByIdApi = (id) => request.get(`/emps/${id}`)
 
 export const updateApi = (emp) => request.put('/emps', emp)
 
-export const deleteByIdApi = (ids) => request.delete(`/emps?ids=${ids}`)
+export const deleteByIdApi = (ids) => request.delete('/emps', { params: { ids } })
 
 export const listApi = () => request.get('/emps/list')

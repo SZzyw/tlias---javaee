@@ -44,6 +44,11 @@ public interface EmpService {
     LoginInfo login(Emp emp);
 
     /**
+     * 修改密码
+     */
+    void changePassword(Integer id, String oldPassword, String newPassword);
+
+    /**
      * 获取员工列表
      * @return
      */

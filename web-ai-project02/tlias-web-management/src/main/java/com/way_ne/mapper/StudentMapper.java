@@ -45,4 +45,10 @@ public interface StudentMapper {
      * 查询班级信息
      */
     List<Map<String, Object>> countStudentCountData();
+
+    List<Map<String, Object>> countStudentEntryTrend();
+
+    List<Map<String, Object>> countViolationRank();
+
+    Map<String, Object> countDashboard();
 }

@@ -3,27 +3,39 @@ package com.way_ne.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Map;
 
+@Component
 public class JwtUtils {
-    private static final String SECRET_KEY = "way_ne";
-    private static final long EXPIRATION_TIME = 12*60*60*1000;
-    /**
-     * 生成JWT令牌
-     */
+    @Value("${jwt.secret-key}")
+    private String secretKey;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
+
+    private static String SECRET_KEY;
+    private static long EXPIRATION_TIME;
+
+    @PostConstruct
+    public void init() {
+        SECRET_KEY = this.secretKey;
+        EXPIRATION_TIME = this.expiration;
+    }
+
     public static String generateToken(Map<String, Object> claims) {
         return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .addClaims(claims)//添加自定义数据
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))//设置过期时间
-                .compact();//生成令牌
+                .addClaims(claims)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .compact();
     }
-    /**
-     * 解析JWT令牌
-     */
-    public static Claims parseToken(String token)  {
+
+    public static Claims parseToken(String token) {
         return Jwts.parser()
                 .setSigningKey(SECRET_KEY)
                 .parseClaimsJws(token)

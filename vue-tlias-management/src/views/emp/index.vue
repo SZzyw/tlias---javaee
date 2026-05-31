@@ -1,8 +1,8 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { queryPageApi, addApi } from '@/api/emp';
+import { queryPageApi, addApi, queryByIdApi, updateApi, deleteByIdApi } from '@/api/emp';
 import { queryAllApi as queryAllDeptApi } from '@/api/dept';
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 //元数据
 //职位列表数据
@@ -173,13 +173,58 @@ watch(() => employee.value.exprList, (newVal, oldVal) => {
 }, {deep: true}) //深度侦听
 
 
+//表格选中项
+const selectedEmpIds = ref([])
+
+//编辑员工
+const editEmp = async (id) => {
+  dialogVisible.value = true;
+  dialogTitle.value = '修改员工';
+  if (empFormRef.value) empFormRef.value.resetFields();
+  const result = await queryByIdApi(id);
+  if (result.code) {
+    employee.value = result.data;
+  }
+}
+
+//删除单个员工
+const delEmp = async (id) => {
+  ElMessageBox.confirm('您确认删除该员工吗?', '提示',
+    { confirmButtonText: '确认', cancelButtonText: '取消', type: 'warning' }
+  ).then(async () => {
+    const result = await deleteByIdApi(id);
+    if (result.code) { ElMessage.success('删除成功'); search() }
+    else { ElMessage.error(result.msg) }
+  }).catch(() => { ElMessage.info('您已取消删除') })
+}
+
+//批量删除
+const batchDelete = async () => {
+  if (selectedEmpIds.value.length === 0) {
+    ElMessage.warning('请先选择要删除的员工');
+    return;
+  }
+  ElMessageBox.confirm(`您确认删除选中的 ${selectedEmpIds.value.length} 名员工吗?`, '提示',
+    { confirmButtonText: '确认', cancelButtonText: '取消', type: 'warning' }
+  ).then(async () => {
+    const result = await deleteByIdApi(selectedEmpIds.value);
+    if (result.code) { ElMessage.success('批量删除成功'); search() }
+    else { ElMessage.error(result.msg) }
+  }).catch(() => { ElMessage.info('您已取消删除') })
+}
+
 //保存员工
 const save = async () => {
   //表单校验
   if(!empFormRef.value) return;
   empFormRef.value.validate(async (valid) => { //valid 表示是否校验通过: true 通过 / false  不通过
     if(valid){ //通过
-      const result = await addApi(employee.value);
+      let result;
+      if (employee.value.id) {
+        result = await updateApi(employee.value);
+      } else {
+        result = await addApi(employee.value);
+      }
       if(result.code) {//成功
         ElMessage.success('保存成功');
         dialogVisible.value = false;
@@ -262,12 +307,12 @@ const rules = ref({
   <!-- 功能按钮 -->
   <div class="container">
     <el-button type="primary" @click="addEmp">+ 新增员工</el-button>
-    <el-button type="danger" @click="">- 批量删除</el-button>
+    <el-button type="danger" @click="batchDelete">- 批量删除</el-button>
   </div>
 
   <!-- 数据展示表格 -->
   <div class="container">
-    <el-table :data="empList" border style="width: 100%">
+    <el-table :data="empList" border style="width: 100%" @selection-change="(val) => selectedEmpIds = val.map(v => v.id)">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column prop="name" label="姓名" width="120" align="center"/>
       <el-table-column label="性别" width="120"  align="center">
@@ -295,8 +340,8 @@ const rules = ref({
       <el-table-column prop="updateTime" label="最后操作时间" width="200"  align="center"/>
       <el-table-column label="操作" align="center">
         <template #default="scope">
-          <el-button type="primary" size="small" @click=""><el-icon><EditPen /></el-icon> 编辑</el-button>
-          <el-button type="danger" size="small" @click=""><el-icon><Delete /></el-icon> 删除</el-button>
+          <el-button type="primary" size="small" @click="editEmp(scope.row.id)"><el-icon><EditPen /></el-icon> 编辑</el-button>
+          <el-button type="danger" size="small" @click="delEmp(scope.row.id)"><el-icon><Delete /></el-icon> 删除</el-button>
         </template>
       </el-table-column>
     </el-table>
