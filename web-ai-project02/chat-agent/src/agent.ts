@@ -7,7 +7,7 @@ import {
 } from "../../../openchatwidget/sdk/widget/src/index";
 
 export async function runChatAgent(messages: UIMessage[]) {
-  const modelId = process.env.OPENAI_MODEL || "gpt-5-mini";
+  const modelId = process.env.OPENAI_MODEL || "gpt-5.5";
   const baseSystemPrompt =
     process.env.CHAT_AGENT_PROMPT ||
     "你是教育管理系统的智能助手。请用中文回复。" +
