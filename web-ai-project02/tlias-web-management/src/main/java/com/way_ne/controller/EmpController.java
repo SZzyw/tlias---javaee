@@ -5,6 +5,7 @@ import com.way_ne.pojo.Emp;
 import com.way_ne.pojo.EmpQueryParam;
 import com.way_ne.pojo.PageResult;
 import com.way_ne.pojo.Result;
+import com.way_ne.security.RequiresPermission;
 import com.way_ne.service.EmpService;
 import com.way_ne.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +32,7 @@ public class EmpController {
     @Autowired
     private HttpServletRequest request;
 
+    @RequiresPermission("emp:view")
     @GetMapping
     public Result page(EmpQueryParam empQueryParam){
         log.info("查询员工信息{}",empQueryParam);
@@ -40,6 +42,7 @@ public class EmpController {
     /**
      * 新增员工
      */
+    @RequiresPermission("emp:edit")
     @PostMapping
     public Result add(@RequestBody Emp emp){
         log.info("新增员工{}",emp);
@@ -49,6 +52,7 @@ public class EmpController {
     /**
      * 删除员工
      */
+    @RequiresPermission("emp:edit")
     @DeleteMapping
     public Result delete(@RequestParam List<Integer> ids){
         log.info("删除员工{}",ids);
@@ -56,6 +60,7 @@ public class EmpController {
         return Result.success();
     }
 
+    @RequiresPermission("emp:view")
     @GetMapping("/{id}")
     public Result getInfo(@PathVariable Integer id){
         log.info("根据id查询员工信息{}",id);
@@ -63,6 +68,7 @@ public class EmpController {
         return Result.success(emp);
     }
 
+    @RequiresPermission("emp:edit")
     @PutMapping
     public Result update(@RequestBody Emp emp){
         log.info("修改员工信息{}",emp);
@@ -70,6 +76,7 @@ public class EmpController {
         return Result.success();
     }
 
+    @RequiresPermission({"clazz:view", "emp:view"})
     @GetMapping("/list")
     public Result getlist(){
         log.info("查询所有员工信息");

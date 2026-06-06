@@ -68,4 +68,6 @@ public interface EmpMapper {
      * 查询所有员工信息
      */
     List<Emp> getlist();
+
+    Integer countByRoleIds(List<Integer> ids);
 }

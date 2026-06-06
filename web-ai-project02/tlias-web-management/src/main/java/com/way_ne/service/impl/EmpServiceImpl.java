@@ -4,7 +4,9 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.way_ne.mapper.EmpExprMapper;
 import com.way_ne.mapper.EmpMapper;
+import com.way_ne.pojo.LoginRequest;
 import com.way_ne.pojo.*;
+import com.way_ne.service.RoleService;
 import com.way_ne.service.EmpService;
 import com.way_ne.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,8 @@ public class EmpServiceImpl implements EmpService {
     EmpExprMapper empExprMapper;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    RoleService roleService;
 
     @Override
     public PageResult<Emp> page(EmpQueryParam empQueryParam) {
@@ -78,14 +82,17 @@ public class EmpServiceImpl implements EmpService {
     }
 
     @Override
-    public LoginInfo login(Emp emp) {
-        Emp e=empMapper.selectByUsername(emp.getUsername());
-        if(e!=null && passwordEncoder.matches(emp.getPassword(), e.getPassword())){
+    public LoginInfo login(LoginRequest loginRequest) {
+        Emp e=empMapper.selectByUsername(loginRequest.getUsername());
+        if(e!=null && passwordEncoder.matches(loginRequest.getPassword(), e.getPassword())){
+            List<String> permissions = roleService.getPermissionCodes(e.getRoleId());
             Map<String,Object> claims=new HashMap<>();
             claims.put("id",e.getId());
             claims.put("username",e.getUsername());
+            claims.put("roleId", e.getRoleId());
+            claims.put("permissions", String.join(",", permissions));
             String token= JwtUtils.generateToken(claims);
-            return new LoginInfo(e.getId(), e.getUsername(), e.getName(), token);
+            return new LoginInfo(e.getId(), e.getUsername(), e.getName(), token, e.getRoleId(), e.getRoleCode(), e.getRoleName(), permissions);
         }
         return null;
     }

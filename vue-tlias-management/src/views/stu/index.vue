@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { queryPageApi, addApi, queryByIdApi, updateApi, deleteByIdApi, violationApi } from '@/api/stu'
 import { listApi as listClazzApi } from '@/api/clazz'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { hasPermission } from '@/utils/auth'
 
 const degrees = [
   { name: '初中', value: 1 }, { name: '高中', value: 2 },
@@ -19,6 +20,8 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const background = ref(true)
+const canStudentEdit = hasPermission('student:edit')
+const canStudentViolation = hasPermission('student:violation')
 
 onMounted(() => {
   search()
@@ -138,70 +141,90 @@ const rules = ref({
 </script>
 
 <template>
-  <h1>学员管理</h1>
-  <div class="container">
-    <el-form :inline="true" :model="searchStu">
-      <el-form-item label="姓名">
-        <el-input v-model="searchStu.name" placeholder="请输入学员姓名" />
-      </el-form-item>
-      <el-form-item label="学历">
-        <el-select v-model="searchStu.degree" placeholder="请选择" clearable>
-          <el-option v-for="d in degrees" :key="d.value" :label="d.name" :value="d.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="班级">
-        <el-select v-model="searchStu.clazzId" placeholder="请选择" clearable>
-          <el-option v-for="c in clazzList" :key="c.id" :label="c.name" :value="c.id" />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="search">查询</el-button>
-        <el-button type="info" @click="clear">清空</el-button>
-      </el-form-item>
-    </el-form>
-  </div>
+  <div class="page-shell">
+    <section class="page-header">
+      <div class="page-header-copy">
+        <p class="page-eyebrow">Student Records</p>
+        <h1 class="page-title">学员管理</h1>
+        <p class="page-description">统一管理学员档案、学历、班级归属与违纪记录，让日常跟踪与统计分析使用同一套数据。</p>
+      </div>
+      <div class="page-actions" v-if="canStudentEdit">
+        <el-button type="primary" @click="addStu">+ 新增学员</el-button>
+      </div>
+    </section>
 
-  <div class="container">
-    <el-button type="primary" @click="addStu">+ 新增学员</el-button>
-  </div>
+    <section class="page-card">
+      <div class="page-section-header">
+        <div>
+          <h3 class="page-section-title">筛选条件</h3>
+          <p class="page-section-subtitle">按姓名、学历和班级快速筛选学员。</p>
+        </div>
+      </div>
+      <el-form :inline="true" :model="searchStu" class="page-search-form">
+        <el-form-item label="姓名">
+          <el-input v-model="searchStu.name" placeholder="请输入学员姓名" />
+        </el-form-item>
+        <el-form-item label="学历">
+          <el-select v-model="searchStu.degree" placeholder="请选择" clearable>
+            <el-option v-for="d in degrees" :key="d.value" :label="d.name" :value="d.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="班级">
+          <el-select v-model="searchStu.clazzId" placeholder="请选择" clearable>
+            <el-option v-for="c in clazzList" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="search">查询</el-button>
+          <el-button type="info" @click="clear">清空</el-button>
+        </el-form-item>
+      </el-form>
+    </section>
 
-  <div class="container">
-    <el-table :data="stuList" border style="width: 100%">
-      <el-table-column type="index" label="序号" width="70" align="center" />
-      <el-table-column prop="name" label="姓名" width="100" align="center" />
-      <el-table-column prop="no" label="学号" width="130" align="center" />
-      <el-table-column label="性别" width="70" align="center">
-        <template #default="scope">{{ scope.row.gender === 1 ? '男' : '女' }}</template>
-      </el-table-column>
-      <el-table-column prop="phone" label="手机号" width="140" align="center" />
-      <el-table-column label="学历" width="80" align="center">
-        <template #default="scope">{{ degreeName(scope.row.degree) }}</template>
-      </el-table-column>
-      <el-table-column prop="clazzName" label="班级" width="160" align="center" />
-      <el-table-column prop="violationCount" label="违纪次数" width="90" align="center" />
-      <el-table-column prop="violationScore" label="违纪扣分" width="90" align="center" />
-      <el-table-column prop="updateTime" label="最后操作时间" width="180" align="center" />
-      <el-table-column label="操作" width="280" align="center">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="edit(scope.row.id)">
-            <el-icon><EditPen /></el-icon> 编辑
-          </el-button>
-          <el-button type="warning" size="small" @click="openViolation(scope.row.id)">
-            <el-icon><WarningFilled /></el-icon> 违纪
-          </el-button>
-          <el-button type="danger" size="small" @click="delById(scope.row.id)">
-            <el-icon><Delete /></el-icon> 删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  </div>
+    <section class="page-table-card">
+      <div class="table-panel-header">
+        <div>
+          <h3 class="page-section-title">学员列表</h3>
+          <p class="page-section-subtitle">查看学员基本资料、班级归属与违纪情况。</p>
+        </div>
+      </div>
+      <el-table :data="stuList" border style="width: 100%">
+        <el-table-column type="index" label="序号" width="70" align="center" />
+        <el-table-column prop="name" label="姓名" width="100" align="center" />
+        <el-table-column prop="no" label="学号" width="130" align="center" />
+        <el-table-column label="性别" width="70" align="center">
+          <template #default="scope">{{ scope.row.gender === 1 ? '男' : '女' }}</template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" width="140" align="center" />
+        <el-table-column label="学历" width="80" align="center">
+          <template #default="scope">{{ degreeName(scope.row.degree) }}</template>
+        </el-table-column>
+        <el-table-column prop="clazzName" label="班级" width="160" align="center" />
+        <el-table-column prop="violationCount" label="违纪次数" width="90" align="center" />
+        <el-table-column prop="violationScore" label="违纪扣分" width="90" align="center" />
+        <el-table-column prop="updateTime" label="最后操作时间" width="180" align="center" />
+        <el-table-column label="操作" width="280" align="center">
+          <template #default="scope">
+            <el-button v-if="canStudentEdit" type="primary" size="small" @click="edit(scope.row.id)">
+              <el-icon><EditPen /></el-icon> 编辑
+            </el-button>
+            <el-button v-if="canStudentViolation" type="warning" size="small" @click="openViolation(scope.row.id)">
+              <el-icon><WarningFilled /></el-icon> 违纪
+            </el-button>
+            <el-button v-if="canStudentEdit" type="danger" size="small" @click="delById(scope.row.id)">
+              <el-icon><Delete /></el-icon> 删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </section>
 
-  <div class="container">
-    <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
-      :page-sizes="[5, 10, 20, 30, 50]" :background="background"
-      layout="total, sizes, prev, pager, next, jumper" :total="total"
-      @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    <section class="page-pagination-card">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[5, 10, 20, 30, 50]" :background="background"
+        layout="total, sizes, prev, pager, next, jumper" :total="total"
+        @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    </section>
   </div>
 
   <el-dialog v-model="dialogFormVisible" :title="formTitle" width="750">
@@ -298,5 +321,4 @@ const rules = ref({
 </template>
 
 <style scoped>
-.container { margin: 10px 0px; }
 </style>

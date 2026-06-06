@@ -86,3 +86,11 @@ application-dev.yml
 *.bak
 *.swp
 *.swo
+
+# 本地头像上传目录
+head/*
+!head/.gitkeep
+
+# 本地预览日志和进程记录
+preview-logs/*
+!preview-logs/.gitkeep

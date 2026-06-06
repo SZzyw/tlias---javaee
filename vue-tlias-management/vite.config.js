@@ -28,6 +28,11 @@ export default defineConfig({
         secure: false,
         changeOrigin: true,
       },
+      '/head': {
+        target: 'http://localhost:8080',
+        secure: false,
+        changeOrigin: true,
+      },
       '/api': {
         target: 'http://localhost:8080',
         secure: false,

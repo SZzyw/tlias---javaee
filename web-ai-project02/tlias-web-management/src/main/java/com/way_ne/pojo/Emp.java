@@ -21,10 +21,13 @@ public class Emp {
     private String image; //头像
     private LocalDate entryDate; //入职日期
     private Integer deptId; //关联的部门ID
+    private Integer roleId; //关联的角色ID
     private LocalDateTime createTime; //创建时间
     private LocalDateTime updateTime; //修改时间
 
     private String deptName;//部门名称
+    private String roleCode;//角色编码
+    private String roleName;//角色名称
 
     private List<EmpExpr> exprList;//工作经历
 }

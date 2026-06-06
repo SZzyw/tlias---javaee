@@ -2,7 +2,9 @@
 import { ref, watch, onMounted } from 'vue';
 import { queryPageApi, addApi, queryByIdApi, updateApi, deleteByIdApi } from '@/api/emp';
 import { queryAllApi as queryAllDeptApi } from '@/api/dept';
+import { queryAllApi as queryAllRoleApi } from '@/api/role';
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { hasPermission } from '@/utils/auth';
 
 //元数据
 //职位列表数据
@@ -11,6 +13,8 @@ const jobs = ref([{ name: '班主任', value: 1 },{ name: '讲师', value: 2 },{
 const genders = ref([{ name: '男', value: 1 }, { name: '女', value: 2 }])
 //部门列表数据
 const depts = ref([])
+const roles = ref([])
+const canEmpEdit = hasPermission('emp:edit')
 
 
 //搜索表单对象
@@ -51,6 +55,7 @@ watch(() => searchEmp.value.date, (newVal, oldVal) => {
 onMounted(() => {
   search(); //查询员工列表数据
   queryAllDepts();//查询所有部门列表数据
+  queryAllRoles();
 })
 
 //查询所有部门数据
@@ -58,6 +63,13 @@ const queryAllDepts = async () => {
   const result = await queryAllDeptApi();
   if(result.code){
     depts.value = result.data;
+  }
+}
+
+const queryAllRoles = async () => {
+  const result = await queryAllRoleApi();
+  if (result.code) {
+    roles.value = result.data;
   }
 }
 
@@ -108,6 +120,7 @@ const addEmp = () => {
     job: '',
     salary: '',
     deptId: '',
+    roleId: '',
     entryDate: '',
     image: '',
     exprList: []
@@ -128,6 +141,7 @@ const employee = ref({
   job: '',
   salary: '',
   deptId: '',
+  roleId: '',
   entryDate: '',
   image: '',
   exprList: []
@@ -136,6 +150,10 @@ const employee = ref({
 // 控制弹窗
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增员工')
+
+const uploadHeaders = {
+  token: localStorage.getItem('token') || ''
+}
 
 // 文件上传
 // 图片上传成功后触发
@@ -270,95 +288,111 @@ const rules = ref({
 </script>
 
 <template>
-  <h1>员工管理</h1>
+  <div class="page-shell">
+    <section class="page-header">
+      <div class="page-header-copy">
+        <p class="page-eyebrow">People Management</p>
+        <h1 class="page-title">员工管理</h1>
+        <p class="page-description">统一维护员工档案、头像、岗位、部门、角色与工作经历，支撑教务后台的人事协同。</p>
+      </div>
+      <div class="page-actions" v-if="canEmpEdit">
+        <el-button type="primary" @click="addEmp">+ 新增员工</el-button>
+        <el-button type="danger" @click="batchDelete">- 批量删除</el-button>
+      </div>
+    </section>
 
-  <!-- 搜索栏 -->
-  <div class="container">
-    <el-form :inline="true" :model="searchEmp" class="demo-form-inline">
-      <el-form-item label="姓名">
-        <el-input v-model="searchEmp.name" placeholder="请输入员工姓名" />
-      </el-form-item>
+    <section class="page-card">
+      <div class="page-section-header">
+        <div>
+          <h3 class="page-section-title">筛选条件</h3>
+          <p class="page-section-subtitle">按姓名、性别和入职时间定位目标员工。</p>
+        </div>
+      </div>
+      <el-form :inline="true" :model="searchEmp" class="page-search-form">
+        <el-form-item label="姓名">
+          <el-input v-model="searchEmp.name" placeholder="请输入员工姓名" />
+        </el-form-item>
 
-      <el-form-item label="性别">
-        <el-select v-model="searchEmp.gender" placeholder="请选择">
-          <el-option label="男" value="1" />
-          <el-option label="女" value="2" />
-        </el-select>
-      </el-form-item>
+        <el-form-item label="性别">
+          <el-select v-model="searchEmp.gender" placeholder="请选择">
+            <el-option label="男" value="1" />
+            <el-option label="女" value="2" />
+          </el-select>
+        </el-form-item>
 
-      <el-form-item label="入职时间">
-        <el-date-picker
-          v-model="searchEmp.date"
-          type="daterange"
-          range-separator="到"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-        />
-      </el-form-item>
+        <el-form-item label="入职时间">
+          <el-date-picker
+            v-model="searchEmp.date"
+            type="daterange"
+            range-separator="到"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
 
-      <el-form-item>
-        <el-button type="primary" @click="search">查询</el-button>
-        <el-button type="info" @click="clear">清空</el-button>
-      </el-form-item>
-    </el-form>
-  </div>
-  
-  <!-- 功能按钮 -->
-  <div class="container">
-    <el-button type="primary" @click="addEmp">+ 新增员工</el-button>
-    <el-button type="danger" @click="batchDelete">- 批量删除</el-button>
-  </div>
+        <el-form-item>
+          <el-button type="primary" @click="search">查询</el-button>
+          <el-button type="info" @click="clear">清空</el-button>
+        </el-form-item>
+      </el-form>
+    </section>
 
-  <!-- 数据展示表格 -->
-  <div class="container">
-    <el-table :data="empList" border style="width: 100%" @selection-change="(val) => selectedEmpIds = val.map(v => v.id)">
-      <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column prop="name" label="姓名" width="120" align="center"/>
-      <el-table-column label="性别" width="120"  align="center">
-        <template #default="scope">
-          {{ scope.row.gender == 1 ? '男' : '女' }}
-        </template>
-      </el-table-column>
-      <el-table-column label="头像" width="120"  align="center">
-        <template #default="scope">
-          <img :src="scope.row.image" height="30px">
-        </template>
-      </el-table-column>
-      <el-table-column prop="deptName" label="所属部门" width="120"  align="center"/>
-      <el-table-column prop="job" label="职位" width="120"  align="center">
-        <template #default="scope">
-          <span v-if="scope.row.job == 1">班主任</span>
-          <span v-else-if="scope.row.job == 2">讲师</span>
-          <span v-else-if="scope.row.job == 3">学工主管</span>
-          <span v-else-if="scope.row.job == 4">教研主管</span>
-          <span v-else-if="scope.row.job == 5">咨询师</span>
-          <span v-else>其他</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="entryDate" label="入职日期" width="180"  align="center"/>
-      <el-table-column prop="updateTime" label="最后操作时间" width="200"  align="center"/>
-      <el-table-column label="操作" align="center">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="editEmp(scope.row.id)"><el-icon><EditPen /></el-icon> 编辑</el-button>
-          <el-button type="danger" size="small" @click="delEmp(scope.row.id)"><el-icon><Delete /></el-icon> 删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  </div>
+    <section class="page-table-card">
+      <div class="table-panel-header">
+        <div>
+          <h3 class="page-section-title">员工列表</h3>
+          <p class="page-section-subtitle">查看员工基础资料、部门角色、岗位与最近更新时间。</p>
+        </div>
+      </div>
+      <el-table :data="empList" border style="width: 100%" @selection-change="(val) => selectedEmpIds = val.map(v => v.id)">
+        <el-table-column type="selection" width="55" align="center"/>
+        <el-table-column prop="name" label="姓名" width="120" align="center"/>
+        <el-table-column label="性别" width="120"  align="center">
+          <template #default="scope">
+            {{ scope.row.gender == 1 ? '男' : '女' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="头像" width="120"  align="center">
+          <template #default="scope">
+            <img :src="scope.row.image" height="30px">
+          </template>
+        </el-table-column>
+        <el-table-column prop="roleName" label="角色" width="120"  align="center"/>
+        <el-table-column prop="deptName" label="所属部门" width="120"  align="center"/>
+        <el-table-column prop="job" label="职位" width="120"  align="center">
+          <template #default="scope">
+            <span v-if="scope.row.job == 1">班主任</span>
+            <span v-else-if="scope.row.job == 2">讲师</span>
+            <span v-else-if="scope.row.job == 3">学工主管</span>
+            <span v-else-if="scope.row.job == 4">教研主管</span>
+            <span v-else-if="scope.row.job == 5">咨询师</span>
+            <span v-else>其他</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="entryDate" label="入职日期" width="180"  align="center"/>
+        <el-table-column prop="updateTime" label="最后操作时间" width="200"  align="center"/>
+        <el-table-column label="操作" align="center">
+          <template #default="scope">
+            <el-button v-if="canEmpEdit" type="primary" size="small" @click="editEmp(scope.row.id)"><el-icon><EditPen /></el-icon> 编辑</el-button>
+            <el-button v-if="canEmpEdit" type="danger" size="small" @click="delEmp(scope.row.id)"><el-icon><Delete /></el-icon> 删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </section>
 
-  <!-- 分页条 -->
-  <div class="container">
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :page-sizes="[5, 10, 20, 30, 50, 75, 100]"
-      :background="background"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="total"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
+    <section class="page-pagination-card">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[5, 10, 20, 30, 50, 75, 100]"
+        :background="background"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </section>
   </div>
   
 
@@ -430,6 +464,16 @@ const rules = ref({
         </el-col>
       </el-row>
 
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="角色">
+            <el-select v-model="employee.roleId" placeholder="请选择角色" style="width: 100%;">
+              <el-option v-for="r in roles" :key="r.id" :label="r.name" :value="r.id"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
       <!-- 第五行 -->
       <el-row :gutter="20">
         <el-col :span="24">
@@ -437,6 +481,7 @@ const rules = ref({
             <el-upload
               class="avatar-uploader"
               action="/api/upload"
+              :headers="uploadHeaders"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
@@ -499,12 +544,12 @@ const rules = ref({
 </template>
 
 <style scoped>
-.container {
-  margin: 10px 0px;
-}
-
 .avatar {
+  width: 40px;
   height: 40px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(65, 43, 24, 0.16);
 }
 .avatar-uploader .avatar {
   width: 78px;

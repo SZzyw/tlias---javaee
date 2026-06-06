@@ -41,7 +41,7 @@ public interface EmpService {
      * @param emp
      * @return
      */
-    LoginInfo login(Emp emp);
+    LoginInfo login(LoginRequest loginRequest);
 
     /**
      * 修改密码

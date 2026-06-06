@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { queryPageApi, addApi, queryByIdApi, updateApi, deleteByIdApi } from '@/api/clazz'
 import { listApi as listEmpApi } from '@/api/emp'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { hasPermission } from '@/utils/auth'
 
 const subjects = [
   { name: 'Java', value: 1 }, { name: '前端', value: 2 },
@@ -17,6 +18,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const background = ref(true)
+const canClazzEdit = hasPermission('clazz:edit')
 
 watch(() => searchClazz.value.date, (newVal) => {
   if (newVal && newVal.length === 2) {
@@ -125,64 +127,84 @@ const rules = ref({
 </script>
 
 <template>
-  <h1>班级管理</h1>
-  <div class="container">
-    <el-form :inline="true" :model="searchClazz">
-      <el-form-item label="班级名称">
-        <el-input v-model="searchClazz.name" placeholder="请输入班级名称" />
-      </el-form-item>
-      <el-form-item label="开课时间">
-        <el-date-picker v-model="searchClazz.date" type="daterange" range-separator="到"
-          start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="search">查询</el-button>
-        <el-button type="info" @click="clear">清空</el-button>
-      </el-form-item>
-    </el-form>
-  </div>
+  <div class="page-shell">
+    <section class="page-header">
+      <div class="page-header-copy">
+        <p class="page-eyebrow">Classroom Ops</p>
+        <h1 class="page-title">班级管理</h1>
+        <p class="page-description">维护班级名称、学科、班主任与开结课周期，保证班级运营信息在同一页面完整呈现。</p>
+      </div>
+      <div class="page-actions" v-if="canClazzEdit">
+        <el-button type="primary" @click="addClazz">+ 新增班级</el-button>
+      </div>
+    </section>
 
-  <div class="container">
-    <el-button type="primary" @click="addClazz">+ 新增班级</el-button>
-  </div>
+    <section class="page-card">
+      <div class="page-section-header">
+        <div>
+          <h3 class="page-section-title">筛选条件</h3>
+          <p class="page-section-subtitle">按班级名称与开课时间快速定位目标班级。</p>
+        </div>
+      </div>
+      <el-form :inline="true" :model="searchClazz" class="page-search-form">
+        <el-form-item label="班级名称">
+          <el-input v-model="searchClazz.name" placeholder="请输入班级名称" />
+        </el-form-item>
+        <el-form-item label="开课时间">
+          <el-date-picker v-model="searchClazz.date" type="daterange" range-separator="到"
+            start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="search">查询</el-button>
+          <el-button type="info" @click="clear">清空</el-button>
+        </el-form-item>
+      </el-form>
+    </section>
 
-  <div class="container">
-    <el-table :data="clazzList" border style="width: 100%">
-      <el-table-column type="index" label="序号" width="80" align="center" />
-      <el-table-column prop="name" label="班级名称" width="180" align="center" />
-      <el-table-column prop="room" label="教室" width="120" align="center" />
-      <el-table-column prop="beginDate" label="开课时间" width="130" align="center" />
-      <el-table-column prop="endDate" label="结课时间" width="130" align="center" />
-      <el-table-column prop="masterName" label="班主任" width="120" align="center" />
-      <el-table-column label="学科" width="120" align="center">
-        <template #default="scope">{{ subjectName(scope.row.subject) }}</template>
-      </el-table-column>
-      <el-table-column label="状态" width="100" align="center">
-        <template #default="scope">
-          <el-tag v-if="scope.row.status === '在读中'" type="success" size="small">{{ scope.row.status }}</el-tag>
-          <el-tag v-else-if="scope.row.status === '已结课'" type="info" size="small">{{ scope.row.status }}</el-tag>
-          <el-tag v-else type="warning" size="small">{{ scope.row.status }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="updateTime" label="最后操作时间" width="180" align="center" />
-      <el-table-column label="操作" width="200" align="center">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="edit(scope.row.id)">
-            <el-icon><EditPen /></el-icon> 编辑
-          </el-button>
-          <el-button type="danger" size="small" @click="delById(scope.row.id)">
-            <el-icon><Delete /></el-icon> 删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  </div>
+    <section class="page-table-card">
+      <div class="table-panel-header">
+        <div>
+          <h3 class="page-section-title">班级列表</h3>
+          <p class="page-section-subtitle">统一查看班级基础信息、进度状态与最近更新时间。</p>
+        </div>
+      </div>
+      <el-table :data="clazzList" border style="width: 100%">
+        <el-table-column type="index" label="序号" width="80" align="center" />
+        <el-table-column prop="name" label="班级名称" width="180" align="center" />
+        <el-table-column prop="room" label="教室" width="120" align="center" />
+        <el-table-column prop="beginDate" label="开课时间" width="130" align="center" />
+        <el-table-column prop="endDate" label="结课时间" width="130" align="center" />
+        <el-table-column prop="masterName" label="班主任" width="120" align="center" />
+        <el-table-column label="学科" width="120" align="center">
+          <template #default="scope">{{ subjectName(scope.row.subject) }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="100" align="center">
+          <template #default="scope">
+            <el-tag v-if="scope.row.status === '在读中'" type="success" size="small">{{ scope.row.status }}</el-tag>
+            <el-tag v-else-if="scope.row.status === '已结课'" type="info" size="small">{{ scope.row.status }}</el-tag>
+            <el-tag v-else type="warning" size="small">{{ scope.row.status }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="updateTime" label="最后操作时间" width="180" align="center" />
+        <el-table-column label="操作" width="200" align="center">
+          <template #default="scope">
+            <el-button v-if="canClazzEdit" type="primary" size="small" @click="edit(scope.row.id)">
+              <el-icon><EditPen /></el-icon> 编辑
+            </el-button>
+            <el-button v-if="canClazzEdit" type="danger" size="small" @click="delById(scope.row.id)">
+              <el-icon><Delete /></el-icon> 删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </section>
 
-  <div class="container">
-    <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
-      :page-sizes="[5, 10, 20, 30, 50]" :background="background"
-      layout="total, sizes, prev, pager, next, jumper" :total="total"
-      @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    <section class="page-pagination-card">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[5, 10, 20, 30, 50]" :background="background"
+        layout="total, sizes, prev, pager, next, jumper" :total="total"
+        @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    </section>
   </div>
 
   <el-dialog v-model="dialogFormVisible" :title="formTitle" width="600">
@@ -240,5 +262,4 @@ const rules = ref({
 </template>
 
 <style scoped>
-.container { margin: 10px 0px; }
 </style>

@@ -1,0 +1,6 @@
+@echo off
+setlocal
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0preview-control.ps1" stop
+
+if /I not "%~1"=="--no-pause" pause

@@ -4,6 +4,7 @@ import com.way_ne.pojo.Clazz;
 import com.way_ne.pojo.ClazzQueryParam;
 import com.way_ne.pojo.PageResult;
 import com.way_ne.pojo.Result;
+import com.way_ne.security.RequiresPermission;
 import com.way_ne.service.ClazzService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class ClazzController {
     /**
      * 查询所有班级信息
      */
+    @RequiresPermission("clazz:view")
     @GetMapping
     public Result GetClazz(ClazzQueryParam clazzQueryParam){
         log.info("查询所有班级信息");
@@ -30,6 +32,7 @@ public class ClazzController {
     /**
      * 根据id删除班级
      */
+    @RequiresPermission("clazz:edit")
     @DeleteMapping("/{ids}")
     public Result delete(@PathVariable Integer ids){
         log.info("根据id删除班级");
@@ -39,6 +42,7 @@ public class ClazzController {
     /**
      * 新增班级
      */
+    @RequiresPermission("clazz:edit")
     @PostMapping
     public Result addClazz(@RequestBody Clazz clazz){
         log.info("新增班级{}",clazz);
@@ -48,6 +52,7 @@ public class ClazzController {
     /**
      * 根据id查询班级
      */
+    @RequiresPermission("clazz:view")
     @GetMapping("/{ids}")
     public Result getInfo(@PathVariable Integer ids){
         log.info("根据id查询班级{}",ids);
@@ -57,6 +62,7 @@ public class ClazzController {
     /**
      * 修改班级
      */
+    @RequiresPermission("clazz:edit")
     @PutMapping
     public Result updateClazz(@RequestBody Clazz clazz){
         log.info("修改班级{}",clazz);
@@ -66,6 +72,7 @@ public class ClazzController {
     /**
      * 查询班级信息
      */
+    @RequiresPermission({"clazz:view", "student:view"})
     @GetMapping("/list")
     public Result list(){
         log.info("查询班级信息");

@@ -21,7 +21,7 @@ const jobOption = (data) => ({
   tooltip: {},
   xAxis: { type: 'category', data: data.jobList },
   yAxis: { type: 'value' },
-  series: [{ type: 'bar', data: data.dataList, itemStyle: { color: '#409EFF' } }]
+  series: [{ type: 'bar', data: data.dataList, itemStyle: { color: '#8f623b' } }]
 })
 
 const genderOption = (data) => ({
@@ -29,7 +29,7 @@ const genderOption = (data) => ({
   tooltip: {},
   xAxis: { type: 'category', data: data.map(d => d.name) },
   yAxis: { type: 'value' },
-  series: [{ type: 'bar', data: data.map(d => d.value), itemStyle: { color: '#67C23A' } }]
+  series: [{ type: 'bar', data: data.map(d => d.value), itemStyle: { color: '#4f7f73' } }]
 })
 
 onMounted(async () => {
@@ -53,9 +53,11 @@ onMounted(async () => {
       tooltip: { trigger: 'axis' },
       xAxis: { type: 'category', data: trendRes.data.map(d => d.month) },
       yAxis: { type: 'value' },
-      series: [{ type: 'line', data: trendRes.data.map(d => d.value), smooth: true, areaStyle: {}, itemStyle: { color: '#E6A23C' } }]
+      series: [{ type: 'line', data: trendRes.data.map(d => d.value), smooth: true, areaStyle: {}, itemStyle: { color: '#c49662' } }]
     })
   }
+
+  window.addEventListener('resize', handleResize)
 })
 
 const exportExcel = async () => {
@@ -68,7 +70,14 @@ const exportExcel = async () => {
   a.click(); URL.revokeObjectURL(url)
 }
 
+const handleResize = () => {
+  jobChartInstance?.resize()
+  genderChartInstance?.resize()
+  trendChartInstance?.resize()
+}
+
 onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
   jobChartInstance?.dispose()
   genderChartInstance?.dispose()
   trendChartInstance?.dispose()
@@ -76,16 +85,52 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h1>员工信息统计
-    <el-button type="success" size="small" style="float: right;" @click="exportExcel">
-      <el-icon><Download /></el-icon> 导出Excel
-    </el-button>
-  </h1>
-  <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-    <div ref="jobChartRef" style="width: 50%; height: 400px;"></div>
-    <div ref="genderChartRef" style="width: 50%; height: 400px;"></div>
-  </div>
-  <div style="display: flex; gap: 20px;">
-    <div ref="trendChartRef" style="width: 100%; height: 350px;"></div>
+  <div class="page-shell">
+    <section class="page-header">
+      <div class="page-header-copy">
+        <p class="page-eyebrow">Employee Analytics</p>
+        <h1 class="page-title">员工信息统计</h1>
+        <p class="page-description">从职位、性别和入职趋势三个维度观察组织结构，辅助招聘、培训与团队配置。</p>
+      </div>
+      <div class="page-actions">
+        <el-button type="success" @click="exportExcel">
+          <el-icon><Download /></el-icon> 导出Excel
+        </el-button>
+      </div>
+    </section>
+
+    <section class="chart-grid">
+      <div class="page-panel">
+        <div class="page-section-header">
+          <div>
+            <h3 class="page-section-title">职位分布</h3>
+            <p class="page-section-subtitle">查看组织岗位结构与当前配置重心。</p>
+          </div>
+        </div>
+        <div ref="jobChartRef" class="chart-surface"></div>
+      </div>
+
+      <div class="page-panel">
+        <div class="page-section-header">
+          <div>
+            <h3 class="page-section-title">性别分布</h3>
+            <p class="page-section-subtitle">辅助理解团队构成与岗位画像。</p>
+          </div>
+        </div>
+        <div ref="genderChartRef" class="chart-surface"></div>
+      </div>
+    </section>
+
+    <section class="chart-grid-single">
+      <div class="page-panel">
+        <div class="page-section-header">
+          <div>
+            <h3 class="page-section-title">入职趋势</h3>
+            <p class="page-section-subtitle">观察团队扩张与波动，为人力规划提供支撑。</p>
+          </div>
+        </div>
+        <div ref="trendChartRef" class="chart-surface"></div>
+      </div>
+    </section>
   </div>
 </template>

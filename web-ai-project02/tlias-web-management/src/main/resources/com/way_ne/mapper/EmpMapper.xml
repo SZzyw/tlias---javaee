@@ -5,7 +5,10 @@
 <mapper namespace="com.way_ne.mapper.EmpMapper">
 
     <select id="list" resultType="com.way_ne.pojo.Emp">
-        select e.*, d.name deptName from emp e left join dept d on e.dept_id = d.id
+        select e.*, d.name deptName, r.name roleName
+        from emp e
+        left join dept d on e.dept_id = d.id
+        left join sys_role r on e.role_id = r.id
         <where>
             <if test="name != null and name != ''">
                 e.name like concat('%',#{name},'%')
@@ -23,8 +26,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys ="true" keyProperty = "id">
-        insert into emp(username, name, gender, phone, job, salary, image, entry_date, dept_id, create_time, update_time)
-        values(#{username}, #{name}, #{gender}, #{phone}, #{job}, #{salary}, #{image}, #{entryDate}, #{deptId}, #{createTime}, #{updateTime})
+        insert into emp(username, password, name, gender, phone, job, salary, image, entry_date, dept_id, role_id, create_time, update_time)
+        values(#{username}, #{password}, #{name}, #{gender}, #{phone}, #{job}, #{salary}, #{image}, #{entryDate}, #{deptId}, #{roleId}, #{createTime}, #{updateTime})
     </insert><!--将要映射的类的引用地址-->
 
     <delete id="deleteById">
@@ -46,8 +49,10 @@
         <result property="image" column="image"/>
         <result property="entryDate" column="entry_date"/>
         <result property="deptId" column="dept_id"/>
+        <result property="roleId" column="role_id"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+        <result property="roleName" column="role_name"/>
 
         <collection property="exprList" ofType="com.way_ne.pojo.EmpExpr">
             <id property="id" column="ee_id"/>
@@ -66,9 +71,11 @@
         ee.begin ee_begin,
         ee.end ee_end,
         ee.company ee_company,
-        ee.job ee_job
+        ee.job ee_job,
+        r.name role_name
         from emp e
         left join emp_expr ee on e.id = ee.emp_id
+        left join sys_role r on e.role_id = r.id
         where e.id = #{id}
     </select>
 
@@ -84,6 +91,7 @@
             <if test="image != null and image != ''">image = #{image},</if>
             <if test="entryDate != null">entry_date = #{entryDate},</if>
             <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
             update_time = #{updateTime}
         </set>
         where id = #{id}
@@ -112,7 +120,10 @@
     </select>
 
     <select id="selectByUsername" resultType="com.way_ne.pojo.Emp">
-        select id,username,name,password from emp where username = #{username}
+        select e.id,e.username,e.name,e.password,e.role_id roleId,r.code roleCode,r.name roleName
+        from emp e
+        left join sys_role r on e.role_id = r.id
+        where e.username = #{username}
     </select>
 
     <update id="updatePassword">
@@ -132,5 +143,14 @@
 
     <select id="getlist" resultType="com.way_ne.pojo.Emp">
         select * from emp
+    </select>
+
+    <select id="countByRoleIds" resultType="java.lang.Integer">
+        select count(*)
+        from emp
+        where role_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 </mapper>

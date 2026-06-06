@@ -1,6 +1,7 @@
 package com.way_ne.filter;
 
 import com.way_ne.utils.JwtUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +22,11 @@ public class TokenFilter implements Filter {
         //String requestpath = request.getRequestURL();// http://localhost:8080/api/emp
 
         //2．判断是否是登录请求，如果路径中包含 /login，说明是登录操作，放行
-        if(requestpath.contains("/login")){
+        if("OPTIONS".equalsIgnoreCase(request.getMethod())
+                || requestpath.contains("/login")
+                || requestpath.startsWith("/head/")
+                || requestpath.startsWith("/captcha")
+                || requestpath.startsWith("/error")){
             log.info("登录操作，放行");
             filterChain.doFilter(request,response);
             return;
@@ -39,7 +44,8 @@ public class TokenFilter implements Filter {
 
         //5．如果token存在，校验令牌，如果校验失败 -> 返回错误信息（响应401状态码）
         try {
-            JwtUtils.parseToken(jwt);
+            Claims claims = JwtUtils.parseToken(jwt);
+            request.setAttribute("claims", claims);
         } catch (Exception e) {
             log.info("令牌非法，返回401");
             response.setStatus(401);

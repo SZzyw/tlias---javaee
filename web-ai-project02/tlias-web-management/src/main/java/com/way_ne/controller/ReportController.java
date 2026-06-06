@@ -3,6 +3,7 @@ package com.way_ne.controller;
 import com.way_ne.pojo.ClazzOption;
 import com.way_ne.pojo.JobOption;
 import com.way_ne.pojo.Result;
+import com.way_ne.security.RequiresPermission;
 import com.way_ne.service.ReportService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class ReportController {
     @Autowired
     ReportService reportService;
 
+    @RequiresPermission("report:emp")
     @GetMapping("/empJobData")
     public Result getEmpJobData(){
         log.info("统计员工信息");
@@ -32,6 +34,7 @@ public class ReportController {
         return Result.success(jobOption);
     }
 
+    @RequiresPermission("report:emp")
     @GetMapping("/empGenderData")
     public Result getEmpGenderData(){
         log.info("统计员工性别信息");
@@ -39,6 +42,7 @@ public class ReportController {
         return Result.success(genderList);
     }
 
+    @RequiresPermission("report:stu")
     @GetMapping("/studentDegreeData")
     public Result getStudentDegreeData(){
         log.info("学院简历统计");
@@ -46,6 +50,7 @@ public class ReportController {
         return Result.success(degreeList);
     }
 
+    @RequiresPermission("report:stu")
     @GetMapping("/studentCountData")
     public Result getStudentCountData(){
         log.info("班级人数统计");
@@ -53,6 +58,7 @@ public class ReportController {
         return Result.success(clazzOption);
     }
 
+    @RequiresPermission("dashboard:view")
     @GetMapping("/dashboard")
     public Result getDashboard(){
         log.info("查询仪表盘数据");
@@ -60,6 +66,7 @@ public class ReportController {
         return Result.success(data);
     }
 
+    @RequiresPermission({"dashboard:view", "report:emp"})
     @GetMapping("/empEntryTrend")
     public Result getEmpEntryTrend(){
         log.info("查询员工入职趋势");
@@ -67,6 +74,7 @@ public class ReportController {
         return Result.success(list);
     }
 
+    @RequiresPermission({"dashboard:view", "report:stu"})
     @GetMapping("/studentEntryTrend")
     public Result getStudentEntryTrend(){
         log.info("查询学员入学趋势");
@@ -74,6 +82,7 @@ public class ReportController {
         return Result.success(list);
     }
 
+    @RequiresPermission({"dashboard:view", "report:stu"})
     @GetMapping("/violationRank")
     public Result getViolationRank(){
         log.info("查询违纪排行");
@@ -81,6 +90,7 @@ public class ReportController {
         return Result.success(list);
     }
 
+    @RequiresPermission("report:emp")
     @GetMapping("/exportEmp")
     public void exportEmp(HttpServletResponse response) throws Exception {
         log.info("导出员工数据Excel");
@@ -127,6 +137,7 @@ public class ReportController {
         wb.close();
     }
 
+    @RequiresPermission("report:stu")
     @GetMapping("/exportStudent")
     public void exportStudent(HttpServletResponse response) throws Exception {
         log.info("导出学员数据Excel");

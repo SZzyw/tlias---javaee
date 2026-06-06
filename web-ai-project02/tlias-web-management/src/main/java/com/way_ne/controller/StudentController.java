@@ -4,6 +4,7 @@ import com.way_ne.pojo.PageResult;
 import com.way_ne.pojo.Result;
 import com.way_ne.pojo.Student;
 import com.way_ne.pojo.StudentQueryParam;
+import com.way_ne.security.RequiresPermission;
 import com.way_ne.service.StudentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ public class StudentController {
     /**
      * 查询所有学生信息
      */
+    @RequiresPermission("student:view")
     @GetMapping
     public Result GetStudent(StudentQueryParam studentQueryParam){
         log.info("查询所有学生信息");
@@ -31,6 +33,7 @@ public class StudentController {
     /**
      * 删除学生信息
      */
+    @RequiresPermission("student:edit")
     @DeleteMapping("/{ids}")
     public Result delete(@PathVariable List<Integer> ids){
         log.info("删除学生信息{}",ids);
@@ -41,6 +44,7 @@ public class StudentController {
     /**
      * 新增学生
      */
+    @RequiresPermission("student:edit")
     @PostMapping
     public Result addStudent(@RequestBody Student student){
         log.info("新增学生{}",student);
@@ -50,6 +54,7 @@ public class StudentController {
     /**
      * 根据id查询学生
      */
+    @RequiresPermission("student:view")
     @GetMapping("/{ids}")
     public Result getInfo(@PathVariable Integer ids){
         log.info("根据id查询学生{}",ids);
@@ -60,6 +65,7 @@ public class StudentController {
     /**
      * 修改学生信息
      */
+    @RequiresPermission("student:edit")
     @PutMapping
     public Result update(@RequestBody Student student){
         log.info("修改学生信息{}",student);
@@ -70,6 +76,7 @@ public class StudentController {
     /**
      * 违纪处理
      */
+    @RequiresPermission("student:violation")
     @PutMapping("/violation/{id}/{score}")
     public Result violation(@PathVariable Integer id,@PathVariable Short score){
         log.info("违纪处理{}",id);

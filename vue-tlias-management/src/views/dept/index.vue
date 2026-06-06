@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { queryAllApi, addApi, queryByIdApi, updateApi, deleteByIdApi } from '@/api/dept';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { hasPermission } from '@/utils/auth';
+
+const canDeptEdit = hasPermission('dept:edit')
 
 //钩子函数
 onMounted(() => {
@@ -111,24 +114,37 @@ const delById = async (id) => {
 </script>
 
 <template>
-  <h1>部门管理</h1>
-  <div class="container">
-    <el-button type="primary" @click="addDept"> + 新增部门</el-button>
-  </div>
+  <div class="page-shell">
+    <section class="page-header">
+      <div class="page-header-copy">
+        <p class="page-eyebrow">Organization</p>
+        <h1 class="page-title">部门管理</h1>
+        <p class="page-description">统一维护组织结构，为员工归属、角色管理与统计维度提供稳定的基础数据。</p>
+      </div>
+      <div class="page-actions" v-if="canDeptEdit">
+        <el-button type="primary" @click="addDept">+ 新增部门</el-button>
+      </div>
+    </section>
 
-  <!-- 表格 -->
-  <div class="container">
-    <el-table :data="deptList" border style="width: 100%">
-      <el-table-column type="index" label="序号" width="100" align="center"/>
-      <el-table-column prop="name" label="部门名称" width="300" align="center"/>
-      <el-table-column prop="updateTime" label="最后操作时间" width="350" align="center"/>
-      <el-table-column label="操作" align="center">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="edit(scope.row.id)"><el-icon><EditPen /></el-icon> 编辑</el-button>
-          <el-button type="danger" size="small" @click="delById(scope.row.id)"><el-icon><Delete /></el-icon> 删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <section class="page-table-card">
+      <div class="table-panel-header">
+        <div>
+          <h3 class="page-section-title">部门列表</h3>
+          <p class="page-section-subtitle">查看部门名称与最后一次更新时间，保持组织数据清晰一致。</p>
+        </div>
+      </div>
+      <el-table :data="deptList" border style="width: 100%">
+        <el-table-column type="index" label="序号" width="100" align="center"/>
+        <el-table-column prop="name" label="部门名称" width="300" align="center"/>
+        <el-table-column prop="updateTime" label="最后操作时间" width="350" align="center"/>
+        <el-table-column label="操作" align="center">
+          <template #default="scope">
+            <el-button v-if="canDeptEdit" type="primary" size="small" @click="edit(scope.row.id)"><el-icon><EditPen /></el-icon> 编辑</el-button>
+            <el-button v-if="canDeptEdit" type="danger" size="small" @click="delById(scope.row.id)"><el-icon><Delete /></el-icon> 删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </section>
   </div>
 
   <!-- Dialog对话框 -->
@@ -148,8 +164,4 @@ const delById = async (id) => {
 
 </template>
 
-<style scoped>
-.container {
-  margin: 15px 0px;
-}
-</style>
+<style scoped></style>

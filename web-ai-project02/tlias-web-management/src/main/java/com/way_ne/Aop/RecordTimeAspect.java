@@ -33,10 +33,11 @@ public class RecordTimeAspect {
         String methodName = pjp.getSignature().getDeclaringTypeName() + "." + pjp.getSignature().getName();
         String params = Arrays.toString(pjp.getArgs());
         String ip = request.getRemoteAddr();
+        String operation = request.getMethod() + " " + request.getRequestURI();
 
         OperateLog operateLog = new OperateLog();
         operateLog.setOperator(getCurrentUsername());
-        operateLog.setOperation(methodName);
+        operateLog.setOperation(operation);
         operateLog.setMethod(methodName);
         operateLog.setParams(params.length() > 500 ? params.substring(0, 500) : params);
         operateLog.setCostTime(costTime);
