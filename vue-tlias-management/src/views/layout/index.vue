@@ -1,88 +1,112 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import request from '@/utils/request'
-import { clearAuth, getLoginInfo } from '@/utils/auth'
-import { filterMenusByPermissions } from '@/utils/menu'
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import request from "@/utils/request";
+import { clearAuth, getLoginInfo } from "@/utils/auth";
+import { filterMenusByPermissions } from "@/utils/menu";
 
-const router = useRouter()
-const route = useRoute()
-const passwordDialogVisible = ref(false)
-const passwordForm = ref({ oldPassword: '', newPassword: '', confirmPassword: '' })
-const passwordFormRef = ref()
-const loginInfo = computed(() => getLoginInfo())
-const menus = computed(() => filterMenusByPermissions(loginInfo.value?.permissions || []))
+const router = useRouter();
+const route = useRoute();
+const passwordDialogVisible = ref(false);
+const passwordForm = ref({
+  oldPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
+const passwordFormRef = ref();
+const loginInfo = computed(() => getLoginInfo());
+const menus = computed(() =>
+  filterMenusByPermissions(loginInfo.value?.permissions || [])
+);
 
 const pageDescriptions = {
-  '/index': '集中查看员工、学员、班级与违纪数据，让教学管理与运营状态在同一页上完成总览。',
-  '/clazz': '管理班级信息、排课周期、班主任与学科归属，保持班级生命周期清晰可控。',
-  '/stu': '统一维护学员档案、班级归属与违纪信息，便于日常跟踪与统计分析。',
-  '/dept': '维护部门结构与组织名称，为员工、角色与统计维度提供基础组织数据。',
-  '/emp': '管理员工档案、头像、角色、部门与工作经历，支撑后台组织协同。',
-  '/role': '按角色维度分配权限，让系统访问范围与管理职责保持一致。',
-  '/log': '查看关键操作日志，快速回溯重要行为与后台使用记录。',
-  '/empReport': '聚焦员工统计分析，支持岗位、性别与入职趋势等多维度查看。',
-  '/stuReport': '聚焦学员统计分析，支持学历、班级人数、入学趋势与违纪排行查看。'
-}
+  "/index":
+    "集中查看员工、学员、班级与违纪数据，让教学管理与运营状态在同一页上完成总览。",
+  "/clazz":
+    "管理班级信息、排课周期、班主任与学科归属，保持班级生命周期清晰可控。",
+  "/stu": "统一维护学员档案、班级归属与违纪信息，便于日常跟踪与统计分析。",
+  "/dept": "维护部门结构与组织名称，为员工、角色与统计维度提供基础组织数据。",
+  "/emp": "管理员工档案、头像、角色、部门与工作经历，支撑后台组织协同。",
+  "/role": "按角色维度分配权限，让系统访问范围与管理职责保持一致。",
+  "/log": "查看关键操作日志，快速回溯重要行为与后台使用记录。",
+  "/empReport": "聚焦员工统计分析，支持岗位、性别与入职趋势等多维度查看。",
+  "/stuReport":
+    "聚焦学员统计分析，支持学历、班级人数、入学趋势与违纪排行查看。",
+};
 
 const flattenMenus = (items) =>
-  items.flatMap((item) => (item.type === 'item' ? [item] : item.children || []))
+  items.flatMap((item) =>
+    item.type === "item" ? [item] : item.children || []
+  );
 
-const currentMenu = computed(() => flattenMenus(menus.value).find((item) => item.path === route.path))
-const currentPageTitle = computed(() => currentMenu.value?.title || '教育管理系统')
+const currentMenu = computed(() =>
+  flattenMenus(menus.value).find((item) => item.path === route.path)
+);
+const currentPageTitle = computed(
+  () => currentMenu.value?.title || "教育管理系统"
+);
 const currentPageDescription = computed(
-  () => pageDescriptions[route.path] || '保持教学、人员、权限与统计信息在统一后台中协同管理。'
-)
+  () =>
+    pageDescriptions[route.path] ||
+    "保持教学、人员、权限与统计信息在统一后台中协同管理。"
+);
 const userTags = computed(() => {
-  const tags = []
-  if (loginInfo.value?.roleName) tags.push(loginInfo.value.roleName)
-  if (loginInfo.value?.permissions?.length) tags.push(`${loginInfo.value.permissions.length} 项权限`)
-  return tags
-})
+  const tags = [];
+  if (loginInfo.value?.roleName) tags.push(loginInfo.value.roleName);
+  if (loginInfo.value?.permissions?.length)
+    tags.push(`${loginInfo.value.permissions.length} 项权限`);
+  return tags;
+});
 
 const logout = () => {
-  clearAuth()
-  ElMessage.success('已退出登录')
-  router.push('/login')
-}
+  clearAuth();
+  ElMessage.success("已退出登录");
+  router.push("/login");
+};
 
 const openPasswordDialog = () => {
-  passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
-  if (passwordFormRef.value) passwordFormRef.value.resetFields()
-  passwordDialogVisible.value = true
-}
+  passwordForm.value = {
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  };
+  if (passwordFormRef.value) passwordFormRef.value.resetFields();
+  passwordDialogVisible.value = true;
+};
 
 const changePassword = async () => {
-  if (!passwordFormRef.value) return
+  if (!passwordFormRef.value) return;
   passwordFormRef.value.validate(async (valid) => {
-    if (!valid) return
+    if (!valid) return;
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-      ElMessage.error('两次输入的密码不一致')
-      return
+      ElMessage.error("两次输入的密码不一致");
+      return;
     }
-    const result = await request.put('/emps/password', {
+    const result = await request.put("/emps/password", {
       oldPassword: passwordForm.value.oldPassword,
-      newPassword: passwordForm.value.newPassword
-    })
+      newPassword: passwordForm.value.newPassword,
+    });
     if (result.code) {
-      ElMessage.success('修改密码成功，请重新登录')
-      passwordDialogVisible.value = false
-      logout()
+      ElMessage.success("修改密码成功，请重新登录");
+      passwordDialogVisible.value = false;
+      logout();
     } else {
-      ElMessage.error(result.msg)
+      ElMessage.error(result.msg);
     }
-  })
-}
+  });
+};
 
 const passwordRules = {
-  oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: "请输入原密码", trigger: "blur" }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度6-20位', trigger: 'blur' }
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { min: 6, max: 20, message: "密码长度6-20位", trigger: "blur" },
   ],
-  confirmPassword: [{ required: true, message: '请确认新密码', trigger: 'blur' }]
-}
+  confirmPassword: [
+    { required: true, message: "请确认新密码", trigger: "blur" },
+  ],
+};
 </script>
 
 <template>
@@ -92,12 +116,17 @@ const passwordRules = {
         <div class="brand-panel">
           <span class="brand-badge">TLIAS</span>
           <h1 class="brand-title">教育管理系统</h1>
-          <p class="brand-subtitle">Teaching & Learning Information Administration System</p>
+          <p class="brand-subtitle">
+            Teaching & Learning Information Administration System
+          </p>
         </div>
 
         <el-scrollbar class="menu-scroll">
           <el-menu router :default-active="route.path" class="shell-menu">
-            <template v-for="item in menus" :key="item.type === 'item' ? item.path : item.index">
+            <template
+              v-for="item in menus"
+              :key="item.type === 'item' ? item.path : item.index"
+            >
               <el-menu-item v-if="item.type === 'item'" :index="item.path">
                 <el-icon><component :is="item.icon" /></el-icon>
                 <span>{{ item.title }}</span>
@@ -107,7 +136,11 @@ const passwordRules = {
                   <el-icon><component :is="item.icon" /></el-icon>
                   <span>{{ item.title }}</span>
                 </template>
-                <el-menu-item v-for="child in item.children" :key="child.path" :index="child.path">
+                <el-menu-item
+                  v-for="child in item.children"
+                  :key="child.path"
+                  :index="child.path"
+                >
                   <el-icon><component :is="child.icon" /></el-icon>
                   <span>{{ child.title }}</span>
                 </el-menu-item>
@@ -127,11 +160,17 @@ const passwordRules = {
 
           <div class="header-side">
             <div class="user-panel">
-              <div class="user-avatar">{{ (loginInfo?.name || 'U').slice(0, 1) }}</div>
+              <div class="user-avatar">
+                {{ (loginInfo?.name || "U").slice(0, 1) }}
+              </div>
               <div class="user-meta">
-                <span class="user-name">{{ loginInfo?.name || '未登录用户' }}</span>
+                <span class="user-name">{{
+                  loginInfo?.name || "未登录用户"
+                }}</span>
                 <div class="user-tags">
-                  <span v-for="tag in userTags" :key="tag" class="user-tag">{{ tag }}</span>
+                  <span v-for="tag in userTags" :key="tag" class="user-tag">{{
+                    tag
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -157,15 +196,35 @@ const passwordRules = {
   </div>
 
   <el-dialog v-model="passwordDialogVisible" title="修改密码" width="450">
-    <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px">
+    <el-form
+      :model="passwordForm"
+      :rules="passwordRules"
+      ref="passwordFormRef"
+      label-width="100px"
+    >
       <el-form-item label="原密码" prop="oldPassword">
-        <el-input type="password" v-model="passwordForm.oldPassword" placeholder="请输入原密码" show-password />
+        <el-input
+          type="password"
+          v-model="passwordForm.oldPassword"
+          placeholder="请输入原密码"
+          show-password
+        />
       </el-form-item>
       <el-form-item label="新密码" prop="newPassword">
-        <el-input type="password" v-model="passwordForm.newPassword" placeholder="请输入新密码" show-password />
+        <el-input
+          type="password"
+          v-model="passwordForm.newPassword"
+          placeholder="请输入新密码"
+          show-password
+        />
       </el-form-item>
       <el-form-item label="确认密码" prop="confirmPassword">
-        <el-input type="password" v-model="passwordForm.confirmPassword" placeholder="请再次输入新密码" show-password />
+        <el-input
+          type="password"
+          v-model="passwordForm.confirmPassword"
+          placeholder="请再次输入新密码"
+          show-password
+        />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -196,9 +255,16 @@ const passwordRules = {
   flex-direction: column;
   padding: 20px 18px;
   border-right: 1px solid rgba(124, 85, 53, 0.12);
-  background:
-    linear-gradient(180deg, rgba(70, 44, 25, 0.98), rgba(95, 64, 42, 0.94)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+      180deg,
+      rgba(70, 44, 25, 0.98),
+      rgba(95, 64, 42, 0.94)
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.02)
+    );
 }
 
 .brand-panel {
@@ -226,7 +292,7 @@ const passwordRules = {
   margin: 16px 0 10px;
   font-size: 30px;
   line-height: 1.12;
-  font-family: 'STZhongsong', 'KaiTi', serif;
+  font-family: "STZhongsong", "KaiTi", serif;
 }
 
 .brand-subtitle {
@@ -258,7 +324,11 @@ const passwordRules = {
 }
 
 :deep(.shell-menu .el-menu-item.is-active) {
-  background: linear-gradient(135deg, rgba(196, 150, 98, 0.86), rgba(255, 228, 188, 0.38));
+  background: linear-gradient(
+    135deg,
+    rgba(196, 150, 98, 0.86),
+    rgba(255, 228, 188, 0.38)
+  );
 }
 
 :deep(.shell-menu .el-sub-menu .el-menu-item) {
@@ -275,7 +345,11 @@ const passwordRules = {
 }
 
 .shell-main {
-  background: linear-gradient(180deg, rgba(255, 250, 244, 0.6), rgba(248, 241, 233, 0.8));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 250, 244, 0.6),
+    rgba(248, 241, 233, 0.8)
+  );
 }
 
 .shell-header {

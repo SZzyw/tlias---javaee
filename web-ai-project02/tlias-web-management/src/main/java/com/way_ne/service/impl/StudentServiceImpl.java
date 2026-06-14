@@ -1,12 +1,14 @@
 package com.way_ne.service.impl;
 
 import com.github.pagehelper.Page;
+import com.way_ne.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.way_ne.mapper.StudentMapper;
 import com.way_ne.pojo.PageResult;
 import com.way_ne.pojo.Student;
 import com.way_ne.pojo.StudentQueryParam;
 import com.way_ne.service.StudentService;
+import com.way_ne.utils.IdCardUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,7 @@ public class StudentServiceImpl  implements StudentService {
 
     @Override
     public void addStudent(Student student) {
+        validateStudent(student);
         student.setViolationCount((short) 0);
         student.setViolationScore((short) 0);
         student.setCreateTime(LocalDateTime.now());
@@ -46,6 +49,7 @@ public class StudentServiceImpl  implements StudentService {
 
     @Override
     public void updateStudent(Student student) {
+        validateStudent(student);
         student.setUpdateTime(LocalDateTime.now());
         studentMapper.updateStudent(student);
     }
@@ -56,5 +60,11 @@ public class StudentServiceImpl  implements StudentService {
         student.setViolationCount((short)(student.getViolationCount()+1));
         student.setViolationScore((short)(student.getViolationScore()+score));
         studentMapper.updateStudent(student);
+    }
+
+    private void validateStudent(Student student) {
+        if (!IdCardUtils.isValid(student.getIdCard())) {
+            throw new BusinessException("身份证号格式不正确");
+        }
     }
 }

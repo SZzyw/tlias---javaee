@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler
+    public Result handleBusinessException(BusinessException e) {
+        log.error("业务处理失败:", e);
+        return Result.error(e.getMessage());
+    }
+
+    @ExceptionHandler
     public Result handleException(Exception e){
         log.error("服务器发生异常:",e);
         return Result.error("服务器异常");

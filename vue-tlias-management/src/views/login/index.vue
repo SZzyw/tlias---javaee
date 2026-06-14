@@ -1,51 +1,65 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import request from '@/utils/request'
-import { ElMessage } from 'element-plus'
-import { setAuth } from '@/utils/auth'
-import { getFirstAccessiblePath } from '@/utils/menu'
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import request from "@/utils/request";
+import { ElMessage } from "element-plus";
+import { setAuth } from "@/utils/auth";
+import { getFirstAccessiblePath } from "@/utils/menu";
 
-const router = useRouter()
-const loginForm = ref({ username: '', password: '', captchaId: '', captchaCode: '' })
-const captchaImage = ref('')
+const router = useRouter();
+const loginForm = ref({
+  username: "",
+  password: "",
+  captchaId: "",
+  captchaCode: "",
+});
+const captchaImage = ref("");
 const loginBackgroundStyle = {
   backgroundImage:
-    "linear-gradient(120deg, rgba(46, 26, 14, 0.72), rgba(67, 43, 26, 0.42)), url('/head/v2-f3ea5ca8859b092b89da66d0e1a06a0f_1440w.jpg')"
-}
+    "linear-gradient(120deg, rgba(46, 26, 14, 0.72), rgba(67, 43, 26, 0.42)), url('/head/v2-f3ea5ca8859b092b89da66d0e1a06a0f_1440w.jpg')",
+};
 
 const loadCaptcha = async () => {
-  const result = await request.get('/captcha')
+  const result = await request.get("/captcha");
   if (result.code) {
-    loginForm.value.captchaId = result.data.captchaId
-    loginForm.value.captchaCode = ''
-    captchaImage.value = result.data.imageBase64
+    loginForm.value.captchaId = result.data.captchaId;
+    loginForm.value.captchaCode = "";
+    captchaImage.value = result.data.imageBase64;
   }
-}
+};
 
 onMounted(() => {
-  loadCaptcha()
-})
+  loadCaptcha();
+});
 
 const login = async () => {
-  if (!loginForm.value.username || !loginForm.value.password || !loginForm.value.captchaCode) {
-    ElMessage.warning('请输入用户名、密码和验证码')
-    return
+  if (
+    !loginForm.value.username ||
+    !loginForm.value.password ||
+    !loginForm.value.captchaCode
+  ) {
+    ElMessage.warning("请输入用户名、密码和验证码");
+    return;
   }
-  const result = await request.post('/login', loginForm.value)
+  const result = await request.post("/login", loginForm.value);
   if (result.code) {
-    setAuth(result.data)
-    ElMessage.success('登录成功')
-    router.push(getFirstAccessiblePath(result.data.permissions))
+    setAuth(result.data);
+    ElMessage.success("登录成功");
+    router.push(getFirstAccessiblePath(result.data.permissions));
   } else {
-    ElMessage.error(result.msg || '用户名或密码错误')
-    loadCaptcha()
+    ElMessage.error(result.msg || "用户名或密码错误");
+    loadCaptcha();
   }
-}
+};
 
 const reset = () => {
-  loginForm.value = { username: '', password: '', captchaId: loginForm.value.captchaId, captchaCode: '' }
-}
+  loginForm.value = {
+    username: "",
+    password: "",
+    captchaId: loginForm.value.captchaId,
+    captchaCode: "",
+  };
+};
 </script>
 
 <template>
@@ -75,20 +89,43 @@ const reset = () => {
 
         <el-form label-position="top">
           <el-form-item label="用户名" prop="username">
-            <el-input v-model="loginForm.username" placeholder="请输入用户名" size="large" />
+            <el-input
+              v-model="loginForm.username"
+              placeholder="请输入用户名"
+              size="large"
+            />
           </el-form-item>
           <el-form-item label="密码" prop="password">
-            <el-input type="password" v-model="loginForm.password" placeholder="请输入密码" show-password size="large" />
+            <el-input
+              type="password"
+              v-model="loginForm.password"
+              placeholder="请输入密码"
+              show-password
+              size="large"
+            />
           </el-form-item>
           <el-form-item label="验证码" prop="captchaCode">
             <div class="captcha-row">
-              <el-input v-model="loginForm.captchaCode" placeholder="请输入验证码" size="large" />
-              <img class="captcha-image" :src="captchaImage" alt="captcha" @click="loadCaptcha">
+              <el-input
+                v-model="loginForm.captchaCode"
+                placeholder="请输入验证码"
+                size="large"
+              />
+              <img
+                class="captcha-image"
+                :src="captchaImage"
+                alt="captcha"
+                @click="loadCaptcha"
+              />
             </div>
           </el-form-item>
           <div class="login-actions">
-            <el-button class="action-button" type="primary" @click="login">登 录</el-button>
-            <el-button class="action-button secondary" @click="reset">重 置</el-button>
+            <el-button class="action-button" type="primary" @click="login"
+              >登 录</el-button
+            >
+            <el-button class="action-button secondary" @click="reset"
+              >重 置</el-button
+            >
           </div>
         </el-form>
       </div>
@@ -112,9 +149,16 @@ const reset = () => {
 .login-overlay {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.18), transparent 28%),
-    radial-gradient(circle at 85% 18%, rgba(255, 215, 179, 0.24), transparent 20%);
+  background: radial-gradient(
+      circle at 15% 20%,
+      rgba(255, 255, 255, 0.18),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 85% 18%,
+      rgba(255, 215, 179, 0.24),
+      transparent 20%
+    );
 }
 
 .login-card {
@@ -138,7 +182,11 @@ const reset = () => {
   gap: 18px;
   padding: 54px 48px;
   color: #fff7f0;
-  background: linear-gradient(160deg, rgba(54, 32, 18, 0.52), rgba(54, 32, 18, 0.1));
+  background: linear-gradient(
+    160deg,
+    rgba(54, 32, 18, 0.52),
+    rgba(54, 32, 18, 0.1)
+  );
 }
 
 .login-eyebrow,
@@ -153,7 +201,7 @@ const reset = () => {
   margin: 0;
   font-size: clamp(34px, 4vw, 52px);
   line-height: 1.08;
-  font-family: 'STZhongsong', 'KaiTi', serif;
+  font-family: "STZhongsong", "KaiTi", serif;
 }
 
 .login-subtitle {
